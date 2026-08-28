@@ -1,0 +1,10 @@
+{
+  "name": "zip-to-apk",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Web app for turning a ZIP containing a web project into an Android APK.",
+  "main": "server.js",
+  "scripts": { "start": "node server.js" },
+  "engines": { "node": ">=20" },
+  "dependencies": { "adm-zip": "^0.5.16", "express": "^5.1.0", "multer": "^2.0.2" }
+}
