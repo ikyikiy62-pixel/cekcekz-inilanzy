@@ -4,8 +4,10 @@ const { execFileSync } = require('child_process');
 
 const webDir = path.resolve(process.argv[2]);
 const jobDir = path.resolve(process.argv[3]);
+const iconInput = process.argv[4] ? path.resolve(process.argv[4]) : null;
 const androidDir = path.join(jobDir, 'android');
 const assetsDir = path.join(androidDir, 'app', 'src', 'main', 'assets');
+const resDir = path.join(androidDir, 'app', 'src', 'main', 'res');
 
 fs.mkdirSync(assetsDir, { recursive: true });
 
@@ -34,6 +36,22 @@ const websiteRoot = path.dirname(index);
 fs.rmSync(path.join(assetsDir, 'www'), { recursive: true, force: true });
 fs.cpSync(websiteRoot, path.join(assetsDir, 'www'), { recursive: true });
 
+if (iconInput) {
+  if (!fs.existsSync(iconInput)) throw new Error('File icon tidak ditemukan.');
+  const iconDir = path.join(resDir, 'drawable-nodpi');
+  fs.mkdirSync(iconDir, { recursive: true });
+  const output = path.join(iconDir, 'launcher_icon.png');
+  const python = process.env.PYTHON || 'python3';
+  execFileSync(python, ['-c', `from PIL import Image
+im=Image.open(r'''${iconInput.replace(/'/g, "\\'")}''').convert('RGBA')
+max_side=max(im.size)
+scale=min(512/max_side,1)
+if scale < 1: im=im.resize((round(im.width*scale),round(im.height*scale)),Image.Resampling.LANCZOS)
+im.save(r'''${output.replace(/'/g, "\\'")}''',format='PNG')`], { stdio: 'inherit' });
+}
+
+const iconAttr = iconInput ? ' android:icon="@drawable/launcher_icon"' : '';
+
 write(path.join(androidDir, 'settings.gradle'), `pluginManagement { repositories { google(); mavenCentral(); gradlePluginPortal() } }
 dependencyResolutionManagement { repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS); repositories { google(); mavenCentral() } }
 rootProject.name="ZipToApk"
@@ -60,7 +78,7 @@ android {
 
 write(path.join(androidDir, 'app', 'src', 'main', 'AndroidManifest.xml'), `<?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-  <application android:theme="@style/AppTheme" android:label="ZIP to APK" android:usesCleartextTraffic="true">
+  <application android:theme="@style/AppTheme" android:label="ZIP to APK"${iconAttr} android:usesCleartextTraffic="true">
     <activity android:name=".MainActivity" android:exported="true">
       <intent-filter>
         <action android:name="android.intent.action.MAIN" />
