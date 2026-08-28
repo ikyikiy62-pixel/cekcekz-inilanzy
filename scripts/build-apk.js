@@ -33,8 +33,9 @@ const index = findIndex(webDir);
 if (!index) throw new Error('ZIP harus berisi index.html.');
 
 const websiteRoot = path.dirname(index);
-fs.rmSync(path.join(assetsDir, 'www'), { recursive: true, force: true });
-fs.cpSync(websiteRoot, path.join(assetsDir, 'www'), { recursive: true });
+const wwwDir = path.join(assetsDir, 'www');
+fs.rmSync(wwwDir, { recursive: true, force: true });
+fs.cpSync(websiteRoot, wwwDir, { recursive: true });
 
 if (iconInput) {
   if (!fs.existsSync(iconInput)) throw new Error('File icon tidak ditemukan.');
@@ -114,7 +115,11 @@ public class MainActivity extends Activity {
 `);
 
 execFileSync(process.env.GRADLE || 'gradle', ['-p', androidDir, 'assembleRelease'], { stdio: 'inherit' });
-fs.copyFileSync(
+
+const apkCandidates = [
   path.join(androidDir, 'app', 'build', 'outputs', 'apk', 'release', 'app-release.apk'),
-  path.join(jobDir, 'app-release.apk')
-);
+  path.join(androidDir, 'app', 'build', 'outputs', 'apk', 'release', 'app-release-unsigned.apk')
+];
+const apk = apkCandidates.find(fs.existsSync);
+if (!apk) throw new Error('APK berhasil di-build tetapi file output tidak ditemukan.');
+fs.copyFileSync(apk, path.join(jobDir, 'app-release.apk'));
