@@ -114,12 +114,10 @@ public class MainActivity extends Activity {
 }
 `);
 
-execFileSync(process.env.GRADLE || 'gradle', ['-p', androidDir, 'assembleRelease'], { stdio: 'inherit' });
+// Build a debug APK: Android Gradle Plugin signs it automatically with the runner's debug key,
+// making the downloaded APK directly installable on Android devices.
+execFileSync(process.env.GRADLE || 'gradle', ['-p', androidDir, 'assembleDebug'], { stdio: 'inherit' });
 
-const apkCandidates = [
-  path.join(androidDir, 'app', 'build', 'outputs', 'apk', 'release', 'app-release.apk'),
-  path.join(androidDir, 'app', 'build', 'outputs', 'apk', 'release', 'app-release-unsigned.apk')
-];
-const apk = apkCandidates.find(fs.existsSync);
-if (!apk) throw new Error('APK berhasil di-build tetapi file output tidak ditemukan.');
+const apk = path.join(androidDir, 'app', 'build', 'outputs', 'apk', 'debug', 'app-debug.apk');
+if (!fs.existsSync(apk)) throw new Error('APK berhasil di-build tetapi file output tidak ditemukan.');
 fs.copyFileSync(apk, path.join(jobDir, 'app-release.apk'));
