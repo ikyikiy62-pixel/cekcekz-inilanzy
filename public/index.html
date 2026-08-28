@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ZIP to APK</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <main class="card">
+    <div class="badge">LANZYXCDEV</div>
+    <h1>ZIP <span>→</span> APK</h1>
+    <p class="sub">Upload website kamu dalam ZIP, lalu ubah menjadi aplikasi Android.</p>
+    <form id="form">
+      <label class="drop" id="drop">
+        <input id="zip" name="zip" type="file" accept=".zip,application/zip" required>
+        <div class="icon">↑</div>
+        <strong id="filename">Pilih file ZIP</strong>
+        <small>Maksimal 50 MB · harus punya index.html</small>
+      </label>
+      <button id="submit" type="submit">BUAT APK</button>
+    </form>
+    <div id="status" class="status" hidden></div>
+  </main>
+  <script src="/app.js"></script>
+</body>
+</html>
