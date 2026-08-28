@@ -7,9 +7,9 @@ const crypto = require('crypto');
 const { execFile } = require('child_process');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 10000;
 const ROOT = path.join(__dirname, 'jobs');
-fs.mkdirSync(ROOT, { recursive: true });
+fs.mkdirSync(path.join(ROOT, 'uploads'), { recursive: true });
 
 const upload = multer({
   dest: path.join(ROOT, 'uploads'),
@@ -17,6 +17,7 @@ const upload = multer({
   fileFilter: (_, file, cb) => cb(null, path.extname(file.originalname).toLowerCase() === '.zip')
 });
 
+app.get('/health', (_req, res) => res.json({ ok: true, service: 'lanzy-apk-builder' }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.post('/api/build', upload.single('zip'), async (req, res) => {
@@ -33,13 +34,11 @@ app.post('/api/build', upload.single('zip'), async (req, res) => {
       if (!name || name.includes('..') || path.isAbsolute(name)) throw new Error('ZIP berisi path yang tidak aman.');
     }
     zip.extractAllTo(webDir, true);
-    fs.unlinkSync(req.file.path);
+    try { fs.unlinkSync(req.file.path); } catch {}
 
     const index = findIndex(webDir);
     if (!index) throw new Error('ZIP harus berisi index.html.');
 
-    // The actual Android build is delegated to the included build script when
-    // an Android/Gradle environment is available. This keeps the web API small.
     const script = path.join(__dirname, 'scripts', 'build-apk.js');
     if (!fs.existsSync(script)) throw new Error('Build script belum tersedia.');
 
@@ -74,4 +73,4 @@ function findIndex(dir) {
   return null;
 }
 
-app.listen(PORT, () => console.log(`ZIP to APK running on port ${PORT}`));
+app.listen(PORT, '0.0.0.0', () => console.log(`ZIP to APK running on port ${PORT}`));
