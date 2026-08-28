@@ -11,13 +11,8 @@ const PORT = process.env.PORT || 10000;
 const ROOT = path.join(__dirname, 'jobs');
 fs.mkdirSync(path.join(ROOT, 'uploads'), { recursive: true });
 
-const upload = multer({
-  dest: path.join(ROOT, 'uploads'),
-  limits: { fileSize: 50 * 1024 * 1024 },
-  fileFilter: (_, file, cb) => cb(null, path.extname(file.originalname).toLowerCase() === '.zip')
-});
-
 app.get('/health', (_req, res) => res.json({ ok: true, service: 'lanzy-apk-builder' }));
+app.get('/healthz', (_req, res) => res.status(200).send('ok'));
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.post('/api/build', upload.single('zip'), async (req, res) => {
