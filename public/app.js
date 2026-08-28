@@ -1,0 +1,6 @@
+const form=document.querySelector('#form'),input=document.querySelector('#zip'),drop=document.querySelector('#drop'),nameEl=document.querySelector('#filename'),status=document.querySelector('#status'),button=document.querySelector('#submit');
+input.addEventListener('change',()=>{if(input.files[0])nameEl.textContent=input.files[0].name});
+['dragenter','dragover'].forEach(e=>drop.addEventListener(e,x=>{x.preventDefault();drop.classList.add('drag')}));
+['dragleave','drop'].forEach(e=>drop.addEventListener(e,x=>{x.preventDefault();drop.classList.remove('drag')}));
+drop.addEventListener('drop',e=>{const f=e.dataTransfer.files[0];if(f){const dt=new DataTransfer();dt.items.add(f);input.files=dt.files;nameEl.textContent=f.name}});
+form.addEventListener('submit',async e=>{e.preventDefault();if(!input.files[0])return;button.disabled=true;button.textContent='MEMBUAT APK...';status.hidden=false;status.textContent='ZIP sedang diproses. Jangan tutup halaman.';try{const r=await fetch('/api/build',{method:'POST',body:new FormData(form)});const d=await r.json();if(!r.ok)throw new Error(d.error||'Build gagal');status.innerHTML=`APK selesai dibuat. <a href="${d.download}">Download APK</a>`;button.textContent='SELESAI ✓'}catch(err){status.textContent='Gagal: '+err.message;button.disabled=false;button.textContent='COBA LAGI'}});
