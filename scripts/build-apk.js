@@ -13,10 +13,8 @@ const output=path.join(iconDir,'launcher_icon.png');
 const raw=fs.readFileSync(iconInput);const text=raw.toString('utf8').trim();
 let iconType='png';
 if(/^<svg[\s>]/i.test(text)){
-  // Android vector drawable: use the supplied SVG as a vector only when it contains paths/shapes.
-  // Text-only SVGs are rasterized with ImageMagick when available.
   try{
-    execFileSync('convert',[iconInput,'-background','none','-resize','512x512^','-gravity','center','-extent','512x512',output],{stdio:'inherit'});
+    execFileSync('convert',[iconInput,'-background','white','-resize','448x448','-gravity','center','-extent','512x512',output],{stdio:'inherit'});
   }catch(e){
     throw Error('Icon SVG tidak bisa dirasterisasi di runner. Gunakan PNG/JPG/WebP atau pastikan ImageMagick tersedia.');
   }
