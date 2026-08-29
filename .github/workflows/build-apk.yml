@@ -44,17 +44,33 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.11.1'
-      - name: Install Pillow
-        run: python3 -m pip install --user Pillow
+      - name: Install image tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y imagemagick
+          python3 -m pip install --user Pillow
       - name: Download ZIP and icon
         run: |
           set -euo pipefail
           mkdir -p build-input/web build-input/job
-          curl -L --fail --retry 3 "${{ inputs.zip_url }}" -o build-input/site.zip
-          curl -L --fail --retry 3 "${{ inputs.icon_url }}" -o build-input/icon
+          curl -L --fail --retry 3 --retry-delay 1 "${{ inputs.zip_url }}" -o build-input/site.zip
+          curl -L --fail --retry 3 --retry-delay 1 "${{ inputs.icon_url }}" -o build-input/icon
           test -s build-input/site.zip
           test -s build-input/icon
           unzip -q build-input/site.zip -d build-input/web
+      - name: Validate project inputs
+        shell: bash
+        run: |
+          set -euo pipefail
+          index=$(find build-input/web -type f -iname 'index.html' -print -quit)
+          if [ -z "$index" ]; then
+            echo "ERROR: ZIP harus berisi index.html."
+            exit 1
+          fi
+          echo "INDEX_HTML=$index"
+          file build-input/icon
+          echo "ZIP_SIZE=$(du -h build-input/site.zip | cut -f1)"
+          echo "ICON_SIZE=$(du -h build-input/icon | cut -f1)"
       - name: Build APK
         env:
           APP_NAME: ${{ inputs.app_name }}
@@ -63,10 +79,13 @@ jobs:
         id: apk
         shell: bash
         run: |
+          set -euo pipefail
           apk=$(find build-input/job -maxdepth 1 -type f -name '*.apk' ! -name 'app-release.apk' | head -n 1)
           if [ -z "$apk" ]; then apk="build-input/job/app-release.apk"; fi
           test -f "$apk"
           echo "path=$apk" >> "$GITHUB_OUTPUT"
+          echo "APK=$(basename "$apk")"
+          echo "APK_SIZE=$(du -h "$apk" | cut -f1)"
       - name: Upload APK to release
         env:
           GH_TOKEN: ${{ github.token }}
