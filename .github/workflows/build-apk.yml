@@ -36,8 +36,10 @@ jobs:
           java-version: '17'
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
+        with:
+          packages: 'platform-tools'
       - name: Install Android SDK packages
-        run: sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0"
+        run: sdkmanager "platforms;android-35" "build-tools;35.0.0"
       - name: Install Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
@@ -46,9 +48,12 @@ jobs:
         run: python3 -m pip install --user Pillow
       - name: Download ZIP and icon
         run: |
+          set -euo pipefail
           mkdir -p build-input/web build-input/job
           curl -L --fail --retry 3 "${{ inputs.zip_url }}" -o build-input/site.zip
           curl -L --fail --retry 3 "${{ inputs.icon_url }}" -o build-input/icon
+          test -s build-input/site.zip
+          test -s build-input/icon
           unzip -q build-input/site.zip -d build-input/web
       - name: Build APK
         env:
@@ -60,6 +65,7 @@ jobs:
         run: |
           apk=$(find build-input/job -maxdepth 1 -type f -name '*.apk' ! -name 'app-release.apk' | head -n 1)
           if [ -z "$apk" ]; then apk="build-input/job/app-release.apk"; fi
+          test -f "$apk"
           echo "path=$apk" >> "$GITHUB_OUTPUT"
       - name: Upload APK to release
         env:
