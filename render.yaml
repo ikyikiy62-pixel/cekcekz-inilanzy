@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: lanzy-apk-builder
+    runtime: docker
+    plan: free
+    region: singapore
+    dockerfilePath: ./builder/Dockerfile
+    dockerContext: ./
+    healthCheckPath: /health
+    autoDeployTrigger: commit
